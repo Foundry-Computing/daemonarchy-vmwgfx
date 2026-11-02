@@ -1,3 +1,11 @@
+<!-- foundry-brand:start -->
+![Foundry Computing — FREEBSD VMWGFX; Kernel, an 8-bit rubber duck](docs/branding/project-banner.png)
+
+A project by [Foundry Computing](https://github.com/Foundry-Computing) · **IT solutions. Built to last.**
+
+Meet **Kernel**, the driver-research duck with red pixel horns and a cyan chip.
+<!-- foundry-brand:end -->
+
 # FreeBSD vmwgfx for Daemonarchy
 
 A Foundry Computing research project to restore a native VMware graphics path for Daemonarchy's Hyprland desktop on FreeBSD.
