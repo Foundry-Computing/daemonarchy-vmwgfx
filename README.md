@@ -10,29 +10,22 @@ Meet **Kernel**, the driver-research duck with red pixel horns and a cyan chip.
 
 A Foundry Computing research project to restore a native VMware graphics path for Daemonarchy's Hyprland desktop on FreeBSD.
 
-**Status — November 1, 2026: experimental source/build work. The complete candidate build fails; no linked vmwgfx kernel module exists, and native Hyprland is not working in the tested VMware guest.**
+**November 6, 2026 — Native Hyprland is working in Foundry Computing's Daemonarchy VMware guest.** After a full VM reboot, the owner signed in through SDDM. The packaged Wayland session loaded the expected Daemonarchy wallpaper, workspace bar, and welcome notifications. We confirmed the desktop in the VMware console.
 
-We are documenting the work as it happens: what builds, what fails, which interfaces need native implementations, and what evidence the next milestone must produce.
+## How we got there
 
-## Why this work matters
+The FreeBSD port went from 32 of 38 source files compiling, to 36, to all 38 and a linked `vmwgfx.ko` (version 2.20.0). A late startup service loads the module after the DRM core is ready. We tested that sequence in an isolated clone before deploying it to the working guest.
 
-Our Daemonarchy guest can boot, run terminal tools and accept authenticated SSH connections. A separately configured X11/Openbox compatibility desktop can display a terminal and Chromium through the EFI framebuffer. Native Hyprland still lacks the VMware DRM display device it needs in this tested stack.
+The sign-in screen and the desktop shell needed their own fixes. SDDM displays the greeter through VMware graphics on the tested kernel, and the packaged session uses Qt Quick software rendering for the Quickshell theme. Hyprland runs as the native Wayland compositor on the VMware DRM/KMS path.
 
-Software rendering and a software cursor helped our Linux Omarchy lab, where a working vmwgfx driver already existed. Applying those settings to this FreeBSD guest did not create the missing display interface.
+| Check | Result |
+| --- | --- |
+| Driver and display | VMware SVGA II attached, the DRM display and render devices appeared, and the VMware console showed the greeter. |
+| Graphics buffers and rendering | Shared buffer aliasing and Mesa SVGA3D EGL clear and readback passed after reboot. |
+| Native Hyprland | The isolated clone and the working guest ran native Hyprland. The working guest displayed a Wayland terminal during the test session. |
+| Normal desktop sign-in | After a full reboot, SDDM launched the packaged Wayland session and the expected theme loaded. |
 
-The goal is a reviewed FreeBSD VMware DRM/KMS driver path that can eventually support Daemonarchy's normal Hyprland session. The compatibility desktop remains a recovery option during development.
-
-## What we have demonstrated
-
-| Milestone | Evidence | Limit |
-| --- | --- | --- |
-| Reproducible source baseline | Exact kernel, DRM, Daemonarchy ports and Linux source revisions recorded | Applies to the pinned FreeBSD snapshot |
-| Existing DRM baseline builds | Matching DMA-BUF, DRM core and TTM modules compile | Does not validate VMware driver operation |
-| Initial vmwgfx adaptations | 32 of 38 translation units compile into real ELF objects | Full build fails; no vmwgfx.ko |
-| Allocator fault-injection tests | Actual patched allocator bodies pass user-space ASan/UBSan tests, failure cases and 1,000 reuse cycles | Kernel VM, DMA and locking remain unvalidated |
-| Recovery desktop | X11/Openbox desktop, keyboard, terminal and Chromium HTTPS page observed; graphical login returns after reboot | Owner sign-in through the returned login screen remains unobserved; this is not native Hyprland |
-
-The object count is a compile checkpoint, not a percentage estimate of project completion. No experimental module has been installed or loaded.
+The original FreeBSD kernel and the X11/Openbox compatibility session are available for recovery.
 
 ## Pinned source checkpoint
 
@@ -43,30 +36,13 @@ The object count is a compile checkpoint, not a percentage estimate of project c
 | Daemonarchy ports patches | jordanhubbard/daemonarchy-ports `dd277aff0961905b32a122fa4909051d7a62abb1` |
 | Linux vmwgfx source | gregkh/linux `fa5b06866b643cce7072a4e7c6be7ee3f0f1b95c`, tag v6.12.110 |
 
-## The next engineering problems
+## What the result covers
 
-- Native VM/pager mapping for GEM and imported DMA-BUFs.
-- Correct write protection and dirty-page tracking.
-- Native DMA scatter/gather segment constraints.
-- VMware backdoor/hypercall transport and ABI behavior.
-- Timer expiry and overrun semantics.
-- Remaining driver registration, identification, linking and dependency checks.
-
-Missing APIs need real implementations and review. Returning dummy success values would conceal the very failures we need to understand.
-
-## Before a driver can be called usable
-
-1. Complete the native interfaces, compilation, linking and symbol review.
-2. Prepare a recoverable isolated VMware test clone.
-3. Verify device attach, DRM nodes, modesetting, memory handling, GBM/EGL and repeated rendering.
-4. Verify recovery, unload where supported, reboot and SSH availability.
-5. Launch the actual native Daemonarchy Hyprland session and check terminal, browser, cursor, keyboard, logout and reboot.
-
-A successful compile alone will not close these gates.
+These results apply to Foundry Computing's VMware SVGA II guest and the pinned FreeBSD and DRM stack listed above. The imported-buffer work covers the standard DRM GEM exporter. Other DMA-BUF exporters, suspend and resume, and other GPU hardware are outside the verified coverage.
 
 ## Follow the work and help
 
-This repository starts as the public progress home. Reviewed source patches and build material are not published here yet. There is no driver download or installation recipe at this checkpoint.
+This repository is the public progress log. It contains milestone notes, source references, and upstream credits.
 
 Follow or star the repository for updates. Issues are welcome for relevant upstream work, native-interface design suggestions and corrections to the documented findings. Include source revisions and a small reproducible example where possible. Keep credentials, private addresses and customer information out of reports.
 
