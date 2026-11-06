@@ -12,6 +12,10 @@ A Foundry Computing research project to restore a native VMware graphics path fo
 
 **November 6, 2026 — Native Hyprland is working in Foundry Computing's Daemonarchy VMware guest.** After a full VM reboot, the owner signed in through SDDM. The packaged Wayland session loaded the expected Daemonarchy wallpaper, workspace bar, and welcome notifications. We confirmed the desktop in the VMware console.
 
+![Native Hyprland in the Daemonarchy VMware guest, showing the themed wallpaper, workspace bar, and welcome cards](docs/images/daemonarchy-hyprland-desktop.png)
+
+*The Daemonarchy desktop running native Hyprland on FreeBSD in VMware Workstation.*
+
 ## How we got there
 
 The FreeBSD port went from 32 of 38 source files compiling, to 36, to all 38 and a linked `vmwgfx.ko` (version 2.20.0). A late startup service loads the module after the DRM core is ready. We tested that sequence in an isolated clone before deploying it to the working guest.
